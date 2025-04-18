@@ -1,13 +1,13 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useAuth } from '@/context/AuthContext';
 
-const LoginPage: React.FC = () => {
+const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -17,7 +17,7 @@ const LoginPage: React.FC = () => {
     e.preventDefault();
     setIsLoading(true);
     try {
-      await login(username, password);
+      await login({ username, password });
     } finally {
       setIsLoading(false);
     }
@@ -62,8 +62,6 @@ const LoginPage: React.FC = () => {
                   required
                 />
               </div>
-            </CardContent>
-            <CardFooter>
               <Button 
                 type="submit" 
                 className="w-full bg-farmblue hover:bg-farmblue-dark"
@@ -71,12 +69,12 @@ const LoginPage: React.FC = () => {
               >
                 {isLoading ? "Loading..." : "Login"}
               </Button>
-            </CardFooter>
+            </CardContent>
           </form>
         </Card>
         
         <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Demo: Login dengan username dan password apa saja</p>
+          <p>Demo: Login dengan username: admin, barat, atau timur dan password: password</p>
         </div>
       </div>
     </div>

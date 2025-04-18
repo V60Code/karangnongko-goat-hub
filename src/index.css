@@ -7,28 +7,28 @@
   :root {
     --background: 0 0% 96%;
     --foreground: 222.2 84% 4.9%;
-
+    
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
-
+ 
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-
+ 
     --primary: 212 53% 35%;
     --primary-foreground: 210 40% 98%;
-
+ 
     --secondary: 209 50% 20%;
     --secondary-foreground: 210 40% 98%;
-
+ 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-
+ 
     --accent: 39 63% 60%;
     --accent-foreground: 222.2 47.4% 11.2%;
-
+ 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
+    
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 222.2 84% 4.9%;
@@ -48,7 +48,7 @@
   * {
     @apply border-border;
   }
-
+  
   body {
     @apply bg-background text-foreground font-inter;
   }
@@ -81,21 +81,5 @@
 
   .input-farm {
     @apply w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-farmblue focus:border-transparent;
-  }
-  
-  .badge {
-    @apply px-2 py-1 rounded-full text-xs font-medium text-white;
-  }
-  
-  .badge-success {
-    @apply bg-green-500;
-  }
-  
-  .badge-warning {
-    @apply bg-yellow-500;
-  }
-  
-  .badge-danger {
-    @apply bg-red-500;
   }
 }

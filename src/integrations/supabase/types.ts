@@ -9,13 +9,116 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      feed_logs: {
+        Row: {
+          barn: string
+          created_at: string
+          date: string
+          feed_time: string
+          id: string
+          note: string | null
+          user_id: string
+        }
+        Insert: {
+          barn: string
+          created_at?: string
+          date: string
+          feed_time: string
+          id?: string
+          note?: string | null
+          user_id: string
+        }
+        Update: {
+          barn?: string
+          created_at?: string
+          date?: string
+          feed_time?: string
+          id?: string
+          note?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      goats: {
+        Row: {
+          age: string
+          barn: string
+          created_at: string
+          gender: string
+          id: string
+          status: string
+          tag: string
+          weight: number
+        }
+        Insert: {
+          age: string
+          barn: string
+          created_at?: string
+          gender: string
+          id?: string
+          status: string
+          tag: string
+          weight: number
+        }
+        Update: {
+          age?: string
+          barn?: string
+          created_at?: string
+          gender?: string
+          id?: string
+          status?: string
+          tag?: string
+          weight?: number
+        }
+        Relationships: []
+      }
+      users: {
+        Row: {
+          created_at: string
+          id: string
+          password: string
+          role: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password: string
+          role: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password?: string
+          role?: string
+          username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_by_username: {
+        Args: { username: string }
+        Returns: {
+          created_at: string
+          id: string
+          password: string
+          role: string
+          username: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
