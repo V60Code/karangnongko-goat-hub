@@ -46,8 +46,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               className="w-full h-full object-cover" 
             />
           </div>
-          <h3 className="text-lg font-medium">{user?.name || "User"}</h3>
-          <p className="text-sm text-gray-500">{user?.username || "Username"}</p>
+          <h3 className="text-lg font-medium">{user?.name || user?.username}</h3>
+          <p className="text-sm text-gray-500">{user?.username}</p>
         </div>
         
         <nav className="p-4 flex-1">

@@ -10,7 +10,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="animate-fade-in">
-        <h1 className="text-xl font-medium text-gray-700">Halo, {user?.name || 'User'}!</h1>
+        <h1 className="text-xl font-medium text-gray-700">Halo, {user?.name || user?.username || 'User'}!</h1>
         <h2 className="text-2xl font-bold text-farmblue mt-2">
           Dashboard Sistem Informasi Manajemen Peternakan Karangnongko
         </h2>
