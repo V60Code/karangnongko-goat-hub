@@ -30,6 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('Auth state changed:', event, session);
       if (session) {
         await fetchUserProfile(session.user.id);
       } else {
@@ -44,27 +45,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const fetchUserProfile = async (userId: string) => {
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', userId)
-      .single();
+    try {
+      console.log('Fetching user profile for ID:', userId);
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', userId)
+        .single();
 
-    if (error) {
-      console.error('Error fetching user profile:', error);
-      return;
-    }
+      if (error) {
+        console.error('Error fetching user profile:', error);
+        return;
+      }
 
-    if (user) {
-      setUser({
-        id: user.id,
-        username: user.username,
-        role: user.role as AuthUser['role'],
-        // Since name and photoUrl don't exist in the database yet, set them to undefined
-        name: undefined,
-        photoUrl: undefined,
-      });
-      setIsAuthenticated(true);
+      if (user) {
+        console.log('Found user profile:', user);
+        setUser({
+          id: user.id,
+          username: user.username,
+          role: user.role as AuthUser['role'],
+          name: undefined,
+          photoUrl: undefined,
+        });
+        setIsAuthenticated(true);
+      } else {
+        console.log('No user profile found for ID:', userId);
+      }
+    } catch (err) {
+      console.error('Unexpected error in fetchUserProfile:', err);
     }
   };
 
@@ -74,10 +82,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // First get the user from our custom function
       const { data: userData, error: userError } = await supabase
-        .rpc('get_user_by_username', { username })
-        .single();
+        .rpc('get_user_by_username', { username });
 
-      if (userError || !userData) {
+      if (userError) {
         console.error('User lookup error:', userError);
         toast({
           variant: "destructive",
@@ -87,7 +94,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      console.log('User found:', userData);
+      if (!userData || userData.length === 0) {
+        console.error('No user found with username:', username);
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: "Invalid username or password",
+        });
+        return;
+      }
+
+      // We need to get the first user from the array
+      const user = userData[0];
+      console.log('User found:', user);
 
       // Then try to sign in with email and password
       // Note: We're using a special email format based on username since Supabase requires email for auth
@@ -114,10 +133,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         // Set user data from our database
         setUser({
-          id: userData.id,
-          username: userData.username,
-          role: userData.role as AuthUser['role'],
-          // Since name and photoUrl don't exist in the database yet, set them to undefined
+          id: user.id,
+          username: user.username,
+          role: user.role as AuthUser['role'],
           name: undefined,
           photoUrl: undefined,
         });
@@ -128,6 +146,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           description: `Welcome back, ${username}!`,
         });
         navigate('/');
+      } else {
+        console.error('No session returned after successful login');
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: "An unexpected error occurred",
+        });
       }
     } catch (error) {
       console.error('Login error:', error);
