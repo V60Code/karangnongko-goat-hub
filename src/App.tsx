@@ -4,7 +4,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState } from "react";
 import LoginPage from "./pages/LoginPage";
 import Dashboard from "./pages/Dashboard";
 import DaftarPeternakan from "./pages/DaftarPeternakan";
@@ -20,13 +19,13 @@ const queryClient = new QueryClient();
 const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <GoatProvider>
-          <CheckinProvider>
-            <TooltipProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <GoatProvider>
+              <CheckinProvider>
                 <Routes>
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/" element={<Layout />}>
@@ -36,11 +35,11 @@ const App = () => {
                   </Route>
                   <Route path="*" element={<NotFound />} />
                 </Routes>
-              </BrowserRouter>
-            </TooltipProvider>
-          </CheckinProvider>
-        </GoatProvider>
-      </AuthProvider>
+              </CheckinProvider>
+            </GoatProvider>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
     </QueryClientProvider>
   );
 };
