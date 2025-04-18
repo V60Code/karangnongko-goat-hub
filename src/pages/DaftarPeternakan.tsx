@@ -15,7 +15,7 @@ import { toast } from '@/components/ui/use-toast';
 const DaftarPeternakan: React.FC = () => {
   const { goats, addGoat, updateGoat, deleteGoat } = useGoats();
   
-  const [selectedBarn, setSelectedBarn] = useState<'Timur' | 'Barat' | ''>('');
+  const [selectedBarn, setSelectedBarn] = useState<'Timur' | 'Barat' | 'all'>('all');
   const [filteredGoats, setFilteredGoats] = useState<Goat[]>([]);
   
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -36,14 +36,16 @@ const DaftarPeternakan: React.FC = () => {
   const [goatToEdit, setGoatToEdit] = useState<string | null>(null);
   
   const handleBarnSelect = (value: string) => {
-    setSelectedBarn(value as 'Timur' | 'Barat' | '');
-    if (value) {
+    setSelectedBarn(value as 'Timur' | 'Barat' | 'all');
+    if (value === 'all') {
+      // Show all goats when 'all' is selected
+      setFilteredGoats(goats);
+    } else {
+      // Filter goats by selected barn
       const filtered = goats.filter(goat => goat.barn === value);
       setFilteredGoats(filtered);
-      setCurrentPage(1);
-    } else {
-      setFilteredGoats([]);
     }
+    setCurrentPage(1);
   };
   
   const resetForm = () => {
@@ -100,9 +102,11 @@ const DaftarPeternakan: React.FC = () => {
     addGoat(newGoat);
     
     // Refresh the filtered list if a barn is selected
-    if (selectedBarn && selectedBarn === barn) {
+    if (selectedBarn !== 'all' && selectedBarn === barn) {
       const filtered = [...filteredGoats, { ...newGoat, id: `K${String(goats.length + 1).padStart(3, '0')}` }];
       setFilteredGoats(filtered);
+    } else if (selectedBarn === 'all') {
+      setFilteredGoats([...goats, { ...newGoat, id: `K${String(goats.length + 1).padStart(3, '0')}` }]);
     }
     
     setIsAddDialogOpen(false);
@@ -130,7 +134,7 @@ const DaftarPeternakan: React.FC = () => {
     updateGoat(goatToEdit, updatedGoat);
     
     // Refresh the filtered list if a barn is selected
-    if (selectedBarn) {
+    if (selectedBarn !== 'all') {
       const updatedFiltered = filteredGoats.map(goat => 
         goat.id === goatToEdit ? { ...updatedGoat, id: goatToEdit } as Goat : goat
       );
@@ -142,6 +146,11 @@ const DaftarPeternakan: React.FC = () => {
       } else {
         setFilteredGoats(updatedFiltered);
       }
+    } else if (selectedBarn === 'all') {
+      // Update in the full list
+      setFilteredGoats(goats.map(goat => 
+        goat.id === goatToEdit ? { ...updatedGoat, id: goatToEdit } as Goat : goat
+      ));
     }
     
     setIsEditDialogOpen(false);
@@ -154,15 +163,27 @@ const DaftarPeternakan: React.FC = () => {
       deleteGoat(goatToDelete);
       
       // Update filtered list if needed
-      if (selectedBarn) {
+      if (selectedBarn !== 'all') {
         const newFiltered = filteredGoats.filter(goat => goat.id !== goatToDelete);
         setFilteredGoats(newFiltered);
+      } else {
+        setFilteredGoats(goats.filter(goat => goat.id !== goatToDelete));
       }
       
       setIsDeleteDialogOpen(false);
       setGoatToDelete(null);
     }
   };
+  
+  // Initialize filtered goats when component loads or goats change
+  React.useEffect(() => {
+    if (selectedBarn === 'all') {
+      setFilteredGoats(goats);
+    } else {
+      const filtered = goats.filter(goat => goat.barn === selectedBarn);
+      setFilteredGoats(filtered);
+    }
+  }, [goats, selectedBarn]);
   
   // Pagination
   const totalPages = Math.ceil(filteredGoats.length / itemsPerPage);
@@ -226,7 +247,7 @@ const DaftarPeternakan: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="">Semua Kandang</SelectItem>
+                    <SelectItem value="all">Semua Kandang</SelectItem>
                     <SelectItem value="Timur">Kandang Timur</SelectItem>
                     <SelectItem value="Barat">Kandang Barat</SelectItem>
                   </SelectGroup>
@@ -243,68 +264,66 @@ const DaftarPeternakan: React.FC = () => {
             </div>
           </div>
           
-          {selectedBarn && (
-            <div className="border rounded-lg overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>ID Kambing</TableHead>
-                    <TableHead>Berat (kg)</TableHead>
-                    <TableHead>Umur (bulan)</TableHead>
-                    <TableHead>Jenis Kelamin</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentGoats.length > 0 ? (
-                    currentGoats.map((goat) => (
-                      <TableRow key={goat.id}>
-                        <TableCell className="font-medium">{goat.id}</TableCell>
-                        <TableCell>{goat.weight}</TableCell>
-                        <TableCell>{goat.age}</TableCell>
-                        <TableCell>{goat.gender}</TableCell>
-                        <TableCell>
-                          <span className={getStatusBadgeClass(goat.status)}>
-                            {goat.status}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button 
-                              variant="outline" 
-                              size="icon"
-                              className="h-8 w-8 text-green-600 hover:text-green-700"
-                              onClick={() => handleShowEditDialog(goat.id)}
-                            >
-                              <Pencil size={16} />
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="icon"
-                              className="h-8 w-8 text-red-600 hover:text-red-700"
-                              onClick={() => handleShowDeleteDialog(goat.id)}
-                            >
-                              <Trash2 size={16} />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-4">
-                        Tidak ada data yang ditemukan.
+          <div className="border rounded-lg overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID Kambing</TableHead>
+                  <TableHead>Berat (kg)</TableHead>
+                  <TableHead>Umur (bulan)</TableHead>
+                  <TableHead>Jenis Kelamin</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="text-right">Aksi</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {currentGoats.length > 0 ? (
+                  currentGoats.map((goat) => (
+                    <TableRow key={goat.id}>
+                      <TableCell className="font-medium">{goat.id}</TableCell>
+                      <TableCell>{goat.weight}</TableCell>
+                      <TableCell>{goat.age}</TableCell>
+                      <TableCell>{goat.gender}</TableCell>
+                      <TableCell>
+                        <span className={getStatusBadgeClass(goat.status)}>
+                          {goat.status}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            className="h-8 w-8 text-green-600 hover:text-green-700"
+                            onClick={() => handleShowEditDialog(goat.id)}
+                          >
+                            <Pencil size={16} />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="icon"
+                            className="h-8 w-8 text-red-600 hover:text-red-700"
+                            onClick={() => handleShowDeleteDialog(goat.id)}
+                          >
+                            <Trash2 size={16} />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          )}
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-4">
+                      Tidak ada data yang ditemukan.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </div>
           
           {/* Pagination */}
-          {selectedBarn && filteredGoats.length > 0 && (
+          {filteredGoats.length > 0 && (
             <div className="flex justify-center mt-4 space-x-1">
               <Button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
