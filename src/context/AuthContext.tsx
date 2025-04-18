@@ -70,12 +70,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async ({ username, password }: LoginCredentials) => {
     try {
+      console.log('Attempting login with username:', username);
+      
       // First get the user from our custom function
       const { data: userData, error: userError } = await supabase
         .rpc('get_user_by_username', { username })
         .single();
 
       if (userError || !userData) {
+        console.error('User lookup error:', userError);
         toast({
           variant: "destructive",
           title: "Login failed",
@@ -84,10 +87,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      console.log('User found:', userData);
+
       // Then try to sign in with email and password
       // Note: We're using a special email format based on username since Supabase requires email for auth
-      const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
-        email: `${username}@example.com`,
+      const email = `${username}@example.com`;
+      console.log('Attempting to sign in with email:', email);
+      
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
         password,
       });
 
@@ -101,7 +109,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      if (session) {
+      if (data.session) {
+        console.log('Login successful, session:', data.session);
+        
         // Set user data from our database
         setUser({
           id: userData.id,

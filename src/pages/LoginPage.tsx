@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useAuth } from '@/context/AuthContext';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { InfoIcon } from 'lucide-react';
 
 const LoginPage = () => {
   const [username, setUsername] = useState('');
@@ -85,8 +87,13 @@ const LoginPage = () => {
           </form>
         </Card>
         
-        <div className="mt-6 text-center text-sm text-gray-500">
-          <p>Demo: Login dengan username: admin, barat, atau timur dan password: password</p>
+        <div className="mt-6">
+          <Alert>
+            <InfoIcon className="h-4 w-4" />
+            <AlertDescription className="text-center text-sm text-gray-600">
+              Available logins: username <strong>admin</strong>, <strong>barat</strong>, or <strong>timur</strong> with password <strong>password</strong>
+            </AlertDescription>
+          </Alert>
         </div>
       </div>
     </div>
