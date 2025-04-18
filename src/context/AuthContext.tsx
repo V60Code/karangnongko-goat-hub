@@ -60,6 +60,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: user.id,
         username: user.username,
         role: user.role as AuthUser['role'],
+        name: user.name || undefined,
+        photoUrl: user.photoUrl || undefined,
       });
       setIsAuthenticated(true);
     }
@@ -67,11 +69,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async ({ username, password }: LoginCredentials) => {
     try {
-      const { data: user, error } = await supabase
+      // First get the user from our custom function
+      const { data: userData, error: userError } = await supabase
         .rpc('get_user_by_username', { username })
         .single();
 
-      if (error || !user) {
+      if (userError || !userData) {
         toast({
           variant: "destructive",
           title: "Login failed",
@@ -80,22 +83,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // Then try to sign in with email and password
+      // Note: We're using a special email format based on username since Supabase requires email for auth
       const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
-        email: `${username}@karangnongkofarm.com`,
+        email: `${username}@example.com`,
         password,
       });
 
       if (signInError) {
+        console.error('Sign in error:', signInError);
         toast({
           variant: "destructive",
           title: "Login failed",
-          description: signInError.message,
+          description: "Invalid username or password",
         });
         return;
       }
 
       if (session) {
-        await fetchUserProfile(session.user.id);
+        // Set user data from our database
+        setUser({
+          id: userData.id,
+          username: userData.username,
+          role: userData.role as AuthUser['role'],
+          name: userData.name || undefined,
+          photoUrl: userData.photoUrl || undefined,
+        });
+        setIsAuthenticated(true);
+        
         toast({
           title: "Login successful",
           description: `Welcome back, ${username}!`,

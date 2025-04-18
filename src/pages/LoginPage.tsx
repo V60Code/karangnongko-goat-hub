@@ -11,13 +11,20 @@ const LoginPage = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const { login, isAuthenticated } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+    setError(null);
+    
     try {
+      console.log('Attempting login with:', username);
       await login({ username, password });
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Failed to log in. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -41,6 +48,11 @@ const LoginPage = () => {
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
+              {error && (
+                <div className="bg-red-50 p-3 rounded-md text-red-600 text-sm">
+                  {error}
+                </div>
+              )}
               <div className="space-y-2">
                 <Label htmlFor="username">Username</Label>
                 <Input
