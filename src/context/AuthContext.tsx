@@ -60,8 +60,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: user.id,
         username: user.username,
         role: user.role as AuthUser['role'],
-        name: user.name || undefined,
-        photoUrl: user.photoUrl || undefined,
+        // Since name and photoUrl don't exist in the database yet, set them to undefined
+        name: undefined,
+        photoUrl: undefined,
       });
       setIsAuthenticated(true);
     }
@@ -106,8 +107,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           id: userData.id,
           username: userData.username,
           role: userData.role as AuthUser['role'],
-          name: userData.name || undefined,
-          photoUrl: userData.photoUrl || undefined,
+          // Since name and photoUrl don't exist in the database yet, set them to undefined
+          name: undefined,
+          photoUrl: undefined,
         });
         setIsAuthenticated(true);
         
