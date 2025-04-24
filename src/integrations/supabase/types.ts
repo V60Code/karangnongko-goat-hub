@@ -110,7 +110,7 @@ export type Database = {
     }
     Functions: {
       get_user_by_username: {
-        Args: { username: string }
+        Args: { username_input: string }
         Returns: {
           created_at: string
           id: string

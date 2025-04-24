@@ -24,7 +24,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) {
+        console.log("Existing session found:", session);
         fetchUserProfile(session.user.id);
+      } else {
+        console.log("No existing session found");
       }
     });
 
@@ -82,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // First get the user from our custom function
       const { data: userData, error: userError } = await supabase
-        .rpc('get_user_by_username', { username });
+        .rpc('get_user_by_username', { username_input: username });
 
       if (userError) {
         console.error('User lookup error:', userError);
