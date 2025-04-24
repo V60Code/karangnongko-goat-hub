@@ -22,85 +22,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        console.log("Existing session found:", session);
-        fetchUserProfile(session.user.id);
-      } else {
-        console.log("No existing session found");
+    const checkUserSession = async () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        try {
+          const userData = JSON.parse(storedUser);
+          setUser(userData);
+          setIsAuthenticated(true);
+          console.log('Restored user session from localStorage:', userData);
+        } catch (err) {
+          console.error('Failed to parse stored user data:', err);
+          localStorage.removeItem('user');
+        }
       }
-    });
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session);
-      if (session) {
-        await fetchUserProfile(session.user.id);
-      } else {
-        setUser(null);
-        setIsAuthenticated(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
     };
+    
+    checkUserSession();
   }, []);
-
-  const fetchUserProfile = async (userId: string) => {
-    try {
-      console.log('Fetching user profile for ID:', userId);
-      const { data: user, error } = await supabase
-        .from('users')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching user profile:', error);
-        return;
-      }
-
-      if (user) {
-        console.log('Found user profile:', user);
-        setUser({
-          id: user.id,
-          username: user.username,
-          role: user.role as AuthUser['role'],
-          name: undefined,
-          photoUrl: undefined,
-        });
-        setIsAuthenticated(true);
-      } else {
-        console.log('No user profile found for ID:', userId);
-      }
-    } catch (err) {
-      console.error('Unexpected error in fetchUserProfile:', err);
-    }
-  };
 
   const login = async ({ username, password }: LoginCredentials) => {
     try {
       console.log('Attempting login with username:', username);
       
-      // First get the user from our custom users table
+      // Debug: List all users to see if any exist
+      const { data: allUsers } = await supabase
+        .from('users')
+        .select('*');
+      
+      console.log('All users in database:', allUsers);
+      
+      // Get the user from our custom users table
       const { data: userData, error: userError } = await supabase
         .from('users')
         .select('*')
-        .eq('username', username)
-        .single();
+        .eq('username', username);
+
+      console.log('User query result:', userData);
 
       if (userError) {
         console.error('User lookup error:', userError);
         toast({
           variant: "destructive",
           title: "Login failed",
-          description: "Invalid username or password",
+          description: "Error fetching user data. Please try again.",
         });
         return;
       }
 
-      if (!userData) {
+      // Check if we got any users back
+      if (!userData || userData.length === 0) {
         console.error('No user found with username:', username);
         toast({
           variant: "destructive",
@@ -110,8 +80,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      // Use the first matching user
+      const user = userData[0];
+      
       // Check if password matches
-      if (userData.password !== password) {
+      if (user.password !== password) {
         console.error('Password does not match');
         toast({
           variant: "destructive",
@@ -121,17 +94,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      console.log('User found:', userData);
+      console.log('User found and password matched:', user);
       
       // Set user data and authentication state
-      setUser({
-        id: userData.id,
-        username: userData.username,
-        role: userData.role as AuthUser['role'],
+      const authUser = {
+        id: user.id,
+        username: user.username,
+        role: user.role as AuthUser['role'],
         name: undefined,
         photoUrl: undefined,
-      });
+      };
+      
+      // Store in state and localStorage
+      setUser(authUser);
       setIsAuthenticated(true);
+      localStorage.setItem('user', JSON.stringify(authUser));
       
       toast({
         title: "Login successful",
@@ -152,6 +129,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setUser(null);
       setIsAuthenticated(false);
+      localStorage.removeItem('user');
       navigate('/login');
       toast({
         title: "Logout successful",
