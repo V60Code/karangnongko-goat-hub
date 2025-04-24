@@ -83,9 +83,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       console.log('Attempting login with username:', username);
       
-      // First get the user from our custom function
+      // First get the user from our custom users table
       const { data: userData, error: userError } = await supabase
-        .rpc('get_user_by_username', { username_input: username });
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .single();
 
       if (userError) {
         console.error('User lookup error:', userError);
@@ -97,7 +100,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      if (!userData || userData.length === 0) {
+      if (!userData) {
         console.error('No user found with username:', username);
         toast({
           variant: "destructive",
@@ -107,22 +110,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      // We need to get the first user from the array
-      const user = userData[0];
-      console.log('User found:', user);
-
-      // Then try to sign in with email and password
-      // Note: We're using a special email format based on username since Supabase requires email for auth
-      const email = `${username}@example.com`;
-      console.log('Attempting to sign in with email:', email);
-      
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (signInError) {
-        console.error('Sign in error:', signInError);
+      // Check if password matches
+      if (userData.password !== password) {
+        console.error('Password does not match');
         toast({
           variant: "destructive",
           title: "Login failed",
@@ -131,32 +121,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return;
       }
 
-      if (data.session) {
-        console.log('Login successful, session:', data.session);
-        
-        // Set user data from our database
-        setUser({
-          id: user.id,
-          username: user.username,
-          role: user.role as AuthUser['role'],
-          name: undefined,
-          photoUrl: undefined,
-        });
-        setIsAuthenticated(true);
-        
-        toast({
-          title: "Login successful",
-          description: `Welcome back, ${username}!`,
-        });
-        navigate('/');
-      } else {
-        console.error('No session returned after successful login');
-        toast({
-          variant: "destructive",
-          title: "Login failed",
-          description: "An unexpected error occurred",
-        });
-      }
+      console.log('User found:', userData);
+      
+      // Set user data and authentication state
+      setUser({
+        id: userData.id,
+        username: userData.username,
+        role: userData.role as AuthUser['role'],
+        name: undefined,
+        photoUrl: undefined,
+      });
+      setIsAuthenticated(true);
+      
+      toast({
+        title: "Login successful",
+        description: `Welcome back, ${username}!`,
+      });
+      navigate('/');
     } catch (error) {
       console.error('Login error:', error);
       toast({
@@ -169,7 +150,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = async () => {
     try {
-      await supabase.auth.signOut();
       setUser(null);
       setIsAuthenticated(false);
       navigate('/login');
